@@ -91,30 +91,35 @@ flux_interp <- function(df, max_interval=90) {
 #' @export
 flux_regression <- function(df, interp=FALSE, max_interval=90) {
   require(dplyr)
-  df.sample <- mutate(df,
-                      JDAY=ifelse(yday(DATE)<60, 60,
-                                  ifelse(yday(DATE)>300, 300, yday(DATE))),
-                      LogC=log(C),
-                      Qderiv=log(Q/lag(Q)),
-                      Qderiv=ifelse(is.na(Qderiv), 0, Qderiv),
-                      Year=year(DATE)+JDAY/365.25,
-                      Year2=Year*Year,
-                      Cos2t=cos(2*2*pi*JDAY/365.25),
-                      Sin2t=sin(2*2*pi*JDAY/365.25),
-                      Cost=cos(2*pi*JDAY/365.25),
-                      Sint=sin(2*pi*JDAY/365.25),
-                      LogQ3=log(Q)^3,
-                      LogQ2=log(Q)^2,
-                      LogQ=log(Q)) %>%
+
+  df <- select(df, DATE, Q, C, L) %>%
+    arrange(DATE) %>%
+    mutate(SAMPLED=!is.na(C))
+
+  df_input <- df %>%
+    mutate(JDAY=ifelse(yday(DATE)<60, 60,
+                       ifelse(yday(DATE)>300, 300, yday(DATE))),
+           LogC=log(C),
+           Qderiv=log(Q/lag(Q)),
+           Qderiv=ifelse(is.na(Qderiv), 0, Qderiv),
+           Year=year(DATE)+JDAY/365.25,
+           Year2=Year*Year,
+           Cos2t=cos(2*2*pi*JDAY/365.25),
+           Sin2t=sin(2*2*pi*JDAY/365.25),
+           Cost=cos(2*pi*JDAY/365.25),
+           Sint=sin(2*pi*JDAY/365.25),
+           LogQ3=log(Q)^3,
+           LogQ2=log(Q)^2,
+           LogQ=log(Q)) %>%
     filter(!is.na(L))
 
-  Qderiv_range <- range(df.sample$Qderiv)
-  Q_range <- range(df.sample$Q)
+  Qderiv_range <- range(df_input$Qderiv)
+  Q_range <- range(df_input$Q)
 
-  lm.flux <- lm(LogC~Qderiv+Year+Year2+Cos2t+Sin2t+Cost+Sint+LogQ3+LogQ2+LogQ,
-                data=df.sample)
+  lm_flux <- lm(LogC~Qderiv+Year+Year2+Cos2t+Sin2t+Cost+Sint+LogQ3+LogQ2+LogQ,
+                data=df_input)
 
-  df.predict <- mutate(df,
+  df_predict <- mutate(df,
                        JDAY=ifelse(yday(DATE)<60, 60,
                                    ifelse(yday(DATE)>300, 300, yday(DATE))),
                        LogC=log(C),
@@ -134,25 +139,52 @@ flux_regression <- function(df, interp=FALSE, max_interval=90) {
                        LogQ2=log(Q)^2,
                        LogQ=log(Q))
 
-  df.predict$Cest.bias <- exp(predict(lm.flux, df.predict))
-  df.predict <- mutate(df.predict,
-                       Cest=exp(log(Cest.bias) +
-                                  log(sum(C/Cest.bias, na.rm=TRUE) /
-                                        sum(!is.na(C)))))
+  # compute predictions
+  df_predict$Cest_model_bias <- exp(predict(lm_flux, df_predict))
 
-  df <- merge(df, select(df.predict, DATE, Cest))
+  # correct for re-transformation bias
+  df_predict <- mutate(df_predict,
+                       Cest_model=exp(log(Cest_model_bias) +
+                                      log(sum(C/Cest_model_bias, na.rm=TRUE) /
+                                          sum(!is.na(C)))))
+
+#   df <- merge(df, select(df_predict, DATE, Cest))
 
   if (interp) {
-    #     FWM <- sum(df.sample$L)/sum(df.sample$Q)
-
-    df$Cest_model <- df$Cest
-    df$Cresid_sample <- log(df$C/df$Cest_model)
-    df$Cresid <- interp_range(x=df$DATE, y=df$Cresid_sample, max_interval=max_interval, fill=0)
-
-    df$Cest <- df$Cest_model*exp(df$Cresid)
+    df_predict <- mutate(df_predict,
+                         Cres=log(C/Cest_model),
+                         Cres_interp=interp_range(x=DATE, y=Cres,
+                                                  max_interval=max_interval, fill=0),
+                         Cest=Cest_model*exp(Cres_interp),
+                         Lest=Cest*Q,
+                         Lest_model=Cest_model*Q,
+                         Lres=L-Lest_model)
+  } else {
+    df_predict <- mutate(df_predict,
+                 Cest=Cest_model,
+                 Cres=log(C/Cest),
+                 Lest=Cest*Q,
+                 Lest_model=Cest_model*Q,
+                 Lres=L-Lest)
   }
 
-  df <- mutate(df, Lest=Cest*Q, Lres=L-Lest)
 
-  return(df)
+  df_stats <- load_stats(df_predict, n.coeff=9, method="Method 5")
+
+  df_wyr <- mutate(df_predict, WYEAR=wyear(DATE)) %>%
+      group_by(WYEAR) %>%
+      summarise(N.DAY=n(),
+                N.SAMPLE=sum(SAMPLED),
+                Q=sum(Q),
+                L=sum(Lest, na.rm=TRUE),
+                C=L/Q) %>%
+      mutate(L_RSE=df_stats$CV_Lresid/sqrt(N.SAMPLE),
+             L_SE=L*L_RSE,
+             C_SE=C*L_RSE)
+
+  return(list(model=lm_flux,
+              obs=df_input,
+              pred=df_predict,
+              stats=df_stats,
+              pred_wyr=df_wyr))
 }

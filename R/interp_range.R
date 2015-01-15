@@ -21,49 +21,49 @@ interp_range <- function(x, y, max_interval, fill=0) {
   }
 
   df <- data.frame(X=x, Y=y) %>%
-    dplyr::mutate(HAS_VALUE=!is.na(Y),
+    mutate(HAS_VALUE=!is.na(Y),
                   ID=cumsum(HAS_VALUE)) %>%
-    dplyr::group_by(ID) %>%
-    dplyr::mutate(N_SINCE_PREV=dplyr::row_number()-1,
+    group_by(ID) %>%
+    mutate(N_SINCE_PREV=row_number()-1,
                   N=max(N_SINCE_PREV)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(N_UNTIL_NEXT=N-N_SINCE_PREV,
+    ungroup() %>%
+    mutate(N_UNTIL_NEXT=N-N_SINCE_PREV,
           N_UNTIL_NEXT=ifelse(ID==0, N_UNTIL_NEXT+1,
-                              dplyr::lag(N_UNTIL_NEXT)),
-           N_UNTIL_NEXT=ifelse(dplyr::row_number()==1 & HAS_VALUE, 0, N_UNTIL_NEXT),
+                              lag(N_UNTIL_NEXT)),
+           N_UNTIL_NEXT=ifelse(row_number()==1 & HAS_VALUE, 0, N_UNTIL_NEXT),
            N_UNTIL_NEXT=ifelse(ID==max(ID) & N_SINCE_PREV>0,
                                NA, N_UNTIL_NEXT),
            N_SINCE_PREV=ifelse(ID==0, NA, N_SINCE_PREV)) %>%
-    dplyr::select(-N)
+    select(-N)
 
-  df.id <- dplyr::group_by(df, ID) %>%
-    dplyr::summarise(X=dplyr::first(X), Y=dplyr::first(Y)) %>%
-    dplyr::mutate(X_PREV=ifelse(ID==0, NA, X),
-           X_NEXT=dplyr::lead(X),
+  df.id <- group_by(df, ID) %>%
+    summarise(X=first(X), Y=first(Y)) %>%
+    mutate(X_PREV=ifelse(ID==0, NA, X),
+           X_NEXT=lead(X),
            Y_PREV=Y,
-           Y_NEXT=dplyr::lead(Y)) %>%
-    dplyr::select(-X, -Y)
+           Y_NEXT=lead(Y)) %>%
+    select(-X, -Y)
 
-  df <- dplyr::left_join(df, df.id)
+  df <- left_join(df, df.id)
 
   df$Z <- approx(df$X, df$Y, xout=df$X, rule=2)$y
 
   # outside interval before first
-  df <- dplyr::mutate(df, Z = ifelse(ID==0,
+  df <- mutate(df, Z = ifelse(ID==0,
                                      ifelse(N_UNTIL_NEXT>max_interval, fill, Z),
                                      Z))
   # outside interval after last
-  df <- dplyr::mutate(df, Z = ifelse(ID==max(ID),
+  df <- mutate(df, Z = ifelse(ID==max(ID),
                                      ifelse(N_SINCE_PREV>max_interval, fill, Z),
                                      Z))
 
   # inside interval from prev, outside interval from next
-  df <- dplyr::mutate(df, Z = ifelse(ID>0 & ID<max(ID) &
+  df <- mutate(df, Z = ifelse(ID>0 & ID<max(ID) &
                                      N_SINCE_PREV<=max_interval & N_UNTIL_NEXT>max_interval,
                                      Y_PREV, Z))
 
   # outside interval from prev, inside interval from next
-  df <- dplyr::mutate(df, Z = ifelse(ID>0 & ID<max(ID) &
+  df <- mutate(df, Z = ifelse(ID>0 & ID<max(ID) &
                                      N_SINCE_PREV>max_interval & N_UNTIL_NEXT<=max_interval,
                                      Y_NEXT, Z))
   return(df$Z)
