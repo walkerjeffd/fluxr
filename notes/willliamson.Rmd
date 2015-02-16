@@ -1,0 +1,92 @@
+---
+title: "Williamson Load Estimation"
+author: "Jeffrey D Walker, PhD"
+date: "February 11, 2015"
+output: html_document
+---
+
+```{r}
+library(fluxr)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(gridExtra)
+theme_set(theme_bw())
+
+data(williamson)
+
+williamson <- filter(williamson, as.Date(DATE) >= as.Date("2000-10-01"), as.Date(DATE) <= as.Date("2012-09-30"))
+```
+
+```{r}
+loads <- flux_regression(williamson, interp=TRUE)
+```
+
+
+```{r}
+p.conc <- ggplot(loads$predict, aes(DATE, Cpred)) +
+  geom_line(color='orangered') +
+  geom_point(aes(y=Cobs), color='orangered', size=1) +
+  geom_hline(yint=0, alpha=0) +
+  labs(x='', y='Conc (ppb)') +
+  scale_x_datetime(expand=c(0, 0), 
+                   breaks=seq.POSIXt(ymd('2000-10-01'), ymd('2013-10-01'), by='year'), 
+                   labels=date_format('%m/%y')) +
+  scale_y_continuous(expand=c(0, 0)) +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))
+
+p.flow <- ggplot(loads$predict, aes(DATE, Q)) +
+  geom_area(fill='steelblue', alpha=0.5) +
+  geom_point(aes(y=Q), data=subset(loads$predict, SAMPLED), size=1, color='black') +
+  labs(x='', y='Flow (10^6 m3/day)') +
+  scale_x_datetime(expand=c(0, 0), 
+                   breaks=seq.POSIXt(ymd('2000-10-01'), ymd('2013-10-01'), by='year'), 
+                   labels=date_format('%m/%y')) +
+  scale_y_continuous(expand=c(0, 0)) +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))
+
+p.load <- ggplot(loads$predict, aes(DATE, Lest)) +
+  geom_area(fill='olivedrab3') +
+  geom_point(aes(y=Lobs), data=subset(loads$predict, SAMPLED), size=1, color='olivedrab4') +
+  labs(x='', y='Load (kg/day)') +
+  scale_x_datetime(expand=c(0, 0), 
+                   breaks=seq.POSIXt(ymd('2000-10-01'), ymd('2013-10-01'), by='year'), 
+                   labels=date_format('%m/%y')) +
+  scale_y_continuous(expand=c(0, 0)) +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))
+
+p.wyr.conc <- ggplot(loads$wyr, aes(factor(WYEAR), C)) +
+  geom_bar(stat='identity', fill='orangered', width=0.6) +
+  geom_errorbar(aes(ymin=C-C_se, ymax=C+C_se), width=0.2) +
+  scale_y_continuous(breaks=seq(0, 100, by=20)) +
+  labs(x='', y='FWM Conc (ppb)') +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))
+
+p.wyr.flow <- ggplot(loads$wyr, aes(factor(WYEAR), Q)) +
+  geom_bar(stat='identity', fill='steelblue', width=0.6) +
+  labs(x='', y='Flow (10^6 m3/yr)') +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))
+
+p.wyr.load <- ggplot(loads$wyr, aes(factor(WYEAR), L)) +
+  geom_bar(stat='identity', fill='olivedrab3', width=0.6) +
+  geom_errorbar(aes(ymin=L-L_se, ymax=L+L_se), width=0.2) +
+  scale_y_continuous(labels=comma, breaks=seq(0, 140000, by=20000)) +
+  labs(x='', y='Load (kg/yr)') +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))
+
+tbl <- paste(paste0('Site: ', 'Williamson'),
+             paste0('Output Period', paste(format(loads$predict_period, '%m/%d/%Y'), collapse=' - ')),
+             paste0('Sample Period', paste(format(loads$sample_period, '%m/%d/%Y'), collapse=' - ')),
+             sep='\n')
+plots <- arrangeGrob(arrangeGrob(p.conc, p.flow, p.load, ncol=1),
+  arrangeGrob(p.wyr.conc, p.wyr.flow, p.wyr.load, ncol=1),
+  widths=c(2/3, 1/3), ncol=2)
+grid.arrange(plots, 
+             textGrob(tbl, just='left', hjust = 0),
+             ncol=1,
+             heights=c(4/5, 1/5),
+             main=paste0('\nSite: Williamson | Variable: TP | Dates: ', 
+                          paste(format(loads$predict_period, '%m/%d/%Y'), collapse=' - ')))
+```
+
+
