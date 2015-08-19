@@ -13,9 +13,10 @@ plot_flux_summary <- function(loads, site, variable, title=NULL) {
   x_day <- loads[['predict']]
   x_wyr <- loads[['out']][['wyr']]
 
-  p.conc <- ggplot(x_day, aes(DATE, Cpred)) +
-    geom_line(color='orangered', alpha=0.7) +
-    geom_point(aes(y=Cobs), color='orangered', size=1) +
+  p.conc <- ggplot(x_day, aes(DATE)) +
+    geom_line(aes(y=Cest), color='orangered', alpha=0.5) +
+    geom_point(aes(y=Cobs), color='red', size=1) +
+    geom_line(aes(y=Cpred), color='black', alpha=0.5) +
     geom_hline(yint=0, alpha=0) +
     labs(x='', y='Conc (ppb)') +
     scale_x_datetime(expand=c(0, 0),
