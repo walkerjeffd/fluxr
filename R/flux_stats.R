@@ -2,11 +2,12 @@
 #' Compute error statistics of load estimates
 #'
 #' @param x data frame containing observed, predicted and residual loads
+#' @param model linear model object of type lm
 #' @param n.coeff number of coefficients used to make predictions (for computing degrees of freedom)
 #' @param method name of method for labelling results
 #' @return list of error statistics
 #' @export
-flux_stats <- function(x, n.coeff, method) {
+flux_stats <- function(x, model, n.coeff, method) {
   x <- subset(x, !is.na(Lobs))
 
   n <- nrow(x)
@@ -20,17 +21,21 @@ flux_stats <- function(x, n.coeff, method) {
   sd_Lobs <- sd(x$Lobs)
   rse_L <- se_L/mean_Lest
   cv_Lres <- se_Lres/mean_Lest
+  pred.stats <- list(n=n,
+                     dof=dof,
+                     rss_L=rss_L,
+                     se_Lres=se_Lres,
+                     se_L=se_L,
+                     mean_Lest=mean_Lest,
+                     sd_Lest=sd_Lest,
+                     mean_Lobs=mean_Lobs,
+                     sd_Lobs=sd_Lobs,
+                     rse_L=rse_L,
+                     cv_Lres=cv_Lres,
+                     method=method)
 
-  return(list(n=n,
-              dof=dof,
-              rss_L=rss_L,
-              se_Lres=se_Lres,
-              se_L=se_L,
-              mean_Lest=mean_Lest,
-              sd_Lest=sd_Lest,
-              mean_Lobs=mean_Lobs,
-              sd_Lobs=sd_Lobs,
-              rse_L=rse_L,
-              cv_Lres=cv_Lres,
-              method=method))
+  lm.stats <- broom::glance(model)
+  names(lm.stats) <- paste('lm', names(lm.stats), sep='.')
+
+  return(c(pred.stats, lm.stats))
 }
