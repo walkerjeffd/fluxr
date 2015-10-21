@@ -25,8 +25,9 @@ flux_regression <- function(x, interp=FALSE, max_interval=90, extrapolate_flow=F
 
   # compute loads
   x[['Cobs']] <- x[['C']]
+  x[['Qobs']] <- x[['Q']]
   x[['C']] <- NULL
-  x[['Lobs']] <- x[['Q']]*x[['Cobs']]
+  x[['Lobs']] <- x[['Qobs']]*x[['Cobs']]
 
   x[['SAMPLED']] <- !is.na(x[['Cobs']])
 
@@ -58,7 +59,7 @@ flux_regression <- function(x, interp=FALSE, max_interval=90, extrapolate_flow=F
     # limit Qderiv and Q to prevent extrapolation
     x[['Qderiv']]=ifelse(x[['Qderiv']] < Qderiv_range[1], Qderiv_range[1], x[['Qderiv']])
     x[['Qderiv']]=ifelse(x[['Qderiv']] > Qderiv_range[2], Qderiv_range[2], x[['Qderiv']])
-    x[['Q']]=ifelse(x[['Q']] < Q_range[1], Q_range[1], x[['Q']])
+    x[['Q']]=ifelse(x[['Qobs']] < Q_range[1], Q_range[1], x[['Qobs']])
     x[['Q']]=ifelse(x[['Q']] > Q_range[2], Q_range[2], x[['Q']])
     x[['LogQ3']]=log(x[['Q']])^3
     x[['LogQ2']]=log(x[['Q']])^2
@@ -91,8 +92,8 @@ flux_regression <- function(x, interp=FALSE, max_interval=90, extrapolate_flow=F
     x_predict[['Cres']] <- log(x_predict[['Cobs']] / x_predict[['Cest']])
   }
 
-  x_predict[['Lest']] <- x_predict[['Cest']] * x_predict[['Q']]
-  x_predict[['Lpred']] <- x_predict[['Cpred']] * x_predict[['Q']]
+  x_predict[['Lest']] <- x_predict[['Cest']] * x_predict[['Qobs']]
+  x_predict[['Lpred']] <- x_predict[['Cpred']] * x_predict[['Qobs']]
   x_predict[['Lres']] <- x_predict[['Lobs']] - x_predict[['Lpred']]
 
   x_stats <- flux_stats(x_predict, lm_flux, n.coeff=9, method="Method 5")
@@ -102,7 +103,7 @@ flux_regression <- function(x, interp=FALSE, max_interval=90, extrapolate_flow=F
                       WYEAR=x_predict[['WYEAR']],
                       MONTH=x_predict[['MONTH']],
                       SAMPLED=x_predict[['SAMPLED']],
-                      Q=x_predict[['Q']],
+                      Q=x_predict[['Qobs']],
                       C=x_predict[['Cest']],
                       L=x_predict[['Lest']])
 
@@ -110,7 +111,7 @@ flux_regression <- function(x, interp=FALSE, max_interval=90, extrapolate_flow=F
   x_wyr <- dplyr::summarise(x_wyr,
     N.DAY=length(WYEAR),
     N.SAMPLE=sum(SAMPLED),
-    Q=sum(Q),
+    Q=sum(Qobs),
     L=sum(Lest),
     C=L/Q)
 
@@ -123,7 +124,7 @@ flux_regression <- function(x, interp=FALSE, max_interval=90, extrapolate_flow=F
   x_mon <- dplyr::summarise(x_mon,
     N.DAY=length(WYEAR),
     N.SAMPLE=sum(SAMPLED),
-    Q=sum(Q),
+    Q=sum(Qobs),
     L=sum(Lest, na.rm=TRUE),
     C=L/Q)
 

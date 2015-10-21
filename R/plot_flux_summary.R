@@ -28,9 +28,9 @@ plot_flux_summary <- function(loads, site, variable, title=NULL) {
     theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1),
           plot.margin=grid::unit(c(0,0,0,1), "cm"))
 
-  p.flow <- ggplot(x_day, aes(DATE, Q)) +
+  p.flow <- ggplot(x_day, aes(DATE, Qobs)) +
     geom_area(fill='steelblue', alpha=0.5) +
-    geom_point(aes(y=Q), data=subset(loads$predict, SAMPLED), size=1, color='black') +
+    geom_point(aes(y=Qobs), data=subset(loads$predict, SAMPLED), size=1, color='black') +
     labs(x='', y='Flow (10^6 m3/day)') +
     scale_x_datetime(expand=c(0, 0),
                      breaks=seq.POSIXt(loads[['predict_period']][[1]],
