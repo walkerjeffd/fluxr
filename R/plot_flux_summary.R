@@ -14,11 +14,12 @@ plot_flux_summary <- function(loads, site, variable, title=NULL) {
   x_wyr <- loads[['out']][['wyr']]
 
   p.conc <- ggplot(x_day, aes(DATE)) +
-    geom_line(aes(y=Cest), color='orangered', alpha=0.5) +
+    geom_line(aes(y=Cest, color='Final'), size=0.25) +
     geom_point(aes(y=Cobs), color='red', size=1) +
-    geom_line(aes(y=Cpred), color='black', alpha=0.5) +
+    geom_line(aes(y=Cpred, color='Regression'), size=0.25) +
     geom_hline(yint=0, alpha=0) +
     labs(x='', y='Conc (ppb)') +
+    scale_color_manual('', values=c('Final'='orangered', 'Regression'='black')) +
     scale_x_datetime(expand=c(0, 0),
                      breaks=seq.POSIXt(loads[['predict_period']][[1]],
                                        loads[['predict_period']][[2]],
@@ -26,7 +27,13 @@ plot_flux_summary <- function(loads, site, variable, title=NULL) {
                      labels=scales::date_format('%m/%y')) +
     theme_bw() +
     theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1),
-          plot.margin=grid::unit(c(0,0,0,1), "cm"))
+          plot.margin=grid::unit(c(0,0,0,1), "cm"),
+          legend.margin=grid::unit(0, "cm"),
+          legend.position=c(1, 1.05),
+          legend.justification=c(1, 1),
+          legend.direction=c('horizontal'),
+          legend.key.size=grid::unit(0.5, "cm"),
+          legend.background=element_blank())
 
   p.flow <- ggplot(x_day, aes(DATE, Qobs)) +
     geom_area(fill='steelblue', alpha=0.5) +
