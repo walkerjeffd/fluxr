@@ -36,14 +36,14 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
     theme(plot.margin=grid::unit(c(0.2,1,0.2,0.2), "cm"))
   p_Cres_Lest <- ggplot(loads[['predict']], aes(Lpred, Cres)) +
     geom_hline(yintercept=0, color='grey70') +
-    geom_vline(xintercept=0=0, color='grey70') +
+    geom_vline(xintercept=0, color='grey70') +
     geom_point(color='orangered', size=1) +
     labs(x="Predicted Load (kg/d)", y="Log Residual Conc (ppb)") +
     theme_bw() +
     theme(plot.margin=grid::unit(c(0.2,1,0.2,0.2), "cm"))
   p_Cres_Cest <- ggplot(loads[['predict']], aes(Cpred, Cres)) +
     geom_hline(yintercept=0, color='grey70') +
-    geom_vline(xintercept=0=0, color='grey70') +
+    geom_vline(xintercept=0, color='grey70') +
     geom_point(color='orangered', size=1) +
     labs(x="Predicted Conc (ppb)", y="Log Residual Conc (ppb)") +
     theme_bw() +
@@ -53,13 +53,13 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
     geom_smooth(method='lm') +
     geom_abline(linetype=2) +
     geom_hline(yintercept=0, alpha=0) +
-    geom_vline(xintercept=0=0, alpha=0) +
+    geom_vline(xintercept=0, alpha=0) +
     labs(x="Predicted Conc (ppb)", y="Observed Conc (ppb)") +
     theme_bw() +
     theme(plot.margin=grid::unit(c(0.2,1,0.2,0.2), "cm"))
   p_Lest_L <- ggplot(loads[['predict']], aes(Lpred, Lobs)) +
     geom_hline(yintercept=0, color='grey70') +
-    geom_vline(xintercept=0=0, color='grey70') +
+    geom_vline(xintercept=0, color='grey70') +
     geom_point(color='orangered', size=1) +
     geom_smooth(method='lm') +
     geom_abline(linetype=2) +
