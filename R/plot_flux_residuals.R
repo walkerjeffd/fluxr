@@ -17,9 +17,9 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
     geom_hline(yintercept=0, color='grey70') +
     geom_point(aes(y=Cres), color='orangered', size=1) +
     scale_x_datetime(expand=c(0, 0),
-                     breaks=seq.POSIXt(ymd(paste(lubridate::year(start), 10, 1, sep='-')),
-                                       ymd(paste(lubridate::year(end), 10, 1, sep='-')),
-                                       by='year'),
+                     breaks=seq.Date(ymd(paste(lubridate::year(start), 10, 1, sep='-')),
+                                     ymd(paste(lubridate::year(end), 10, 1, sep='-')),
+                                     by='year'),
                      labels=scales::date_format('%m/%y')) +
     labs(x="Date", y="Log Residual Conc (ppb)") +
     theme_bw() +
