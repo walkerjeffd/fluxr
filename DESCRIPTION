@@ -1,7 +1,7 @@
 Package: fluxr
 Title: Estimate water quality loads using the FLUX algorithms
-Version: 0.1.4
-Authors@R: "Jeff Walker <jeff@walkerjeff.com> [aut, cre]"
+Version: 0.1.5
+Authors@R: "Jeff Walker <jeff@walkerenvres.com> [aut, cre]"
 Description: Tools for estimating continuous water quality loads.
 Depends:
     R (>= 3.2.0)

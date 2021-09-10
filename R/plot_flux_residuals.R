@@ -14,7 +14,7 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
   end <- max(loads$predict$DATE)
 
   p_Cres_ts <- ggplot(loads[['predict']], aes(DATE)) +
-    geom_hline(yint=0, color='grey70') +
+    geom_hline(yintercept=0, color='grey70') +
     geom_point(aes(y=Cres), color='orangered', size=1) +
     scale_x_datetime(expand=c(0, 0),
                      breaks=seq.POSIXt(ymd(paste(lubridate::year(start), 10, 1, sep='-')),
@@ -26,20 +26,20 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
     theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1),
           plot.margin=grid::unit(c(0.2,1,0.2,0.2), "cm"))
   p_Cres_jday <- ggplot(loads[['predict']], aes(lubridate::yday(DATE), Cres)) +
-    geom_hline(yint=0, color='grey70') +
+    geom_hline(yintercept=0, color='grey70') +
     geom_point(color='orangered', size=1) +
     labs(x="Julian Day", y="Log Residual Conc (ppb)") +
     theme_bw() +
     theme(plot.margin=grid::unit(c(0.2,1,0.2,0.2), "cm"))
   p_Cres_Lest <- ggplot(loads[['predict']], aes(Lpred, Cres)) +
-    geom_hline(yint=0, color='grey70') +
+    geom_hline(yintercept=0, color='grey70') +
     geom_vline(xint=0, color='grey70') +
     geom_point(color='orangered', size=1) +
     labs(x="Predicted Load (kg/d)", y="Log Residual Conc (ppb)") +
     theme_bw() +
     theme(plot.margin=grid::unit(c(0.2,1,0.2,0.2), "cm"))
   p_Cres_Cest <- ggplot(loads[['predict']], aes(Cpred, Cres)) +
-    geom_hline(yint=0, color='grey70') +
+    geom_hline(yintercept=0, color='grey70') +
     geom_vline(xint=0, color='grey70') +
     geom_point(color='orangered', size=1) +
     labs(x="Predicted Conc (ppb)", y="Log Residual Conc (ppb)") +
@@ -49,13 +49,13 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
     geom_point(color='orangered', size=1) +
     geom_smooth(method='lm') +
     geom_abline(linetype=2) +
-    geom_hline(yint=0, alpha=0) +
+    geom_hline(yintercept=0, alpha=0) +
     geom_vline(xint=0, alpha=0) +
     labs(x="Predicted Conc (ppb)", y="Observed Conc (ppb)") +
     theme_bw() +
     theme(plot.margin=grid::unit(c(0.2,1,0.2,0.2), "cm"))
   p_Lest_L <- ggplot(loads[['predict']], aes(Lpred, Lobs)) +
-    geom_hline(yint=0, color='grey70') +
+    geom_hline(yintercept=0, color='grey70') +
     geom_vline(xint=0, color='grey70') +
     geom_point(color='orangered', size=1) +
     geom_smooth(method='lm') +
@@ -69,7 +69,7 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
   x <- tidyr::gather(x, VAR, VALUE, Cobs, Cpred)
 
   p_C_Q <- ggplot(x, aes(Q, y=VALUE, color=VAR)) +
-    geom_hline(yint=0, color='grey70') +
+    geom_hline(yintercept=0, color='grey70') +
     geom_point(size=1) +
     scale_x_log10(breaks=fluxr::log_breaks(seq(1, 9), c(0.001, 0.01, 0.1, 1, 10, 100))) +
     scale_color_manual('',
@@ -83,7 +83,7 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
           axis.text.x=element_text(angle=45, hjust=1, vjust=1, size=8))
   p_C_jday <- ggplot(x, aes(yday(DATE), y=VALUE, color=VAR)) +
     geom_point(size=1) +
-    geom_hline(yint=0, alpha=0) +
+    geom_hline(yintercept=0, alpha=0) +
     scale_color_manual('',
                        values=c('Cobs'='orangered', 'Cpred'='steelblue'),
                        labels=c('Cobs'='Observed', 'Cpred'='Predicted')) +

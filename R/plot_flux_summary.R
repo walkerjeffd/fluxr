@@ -17,7 +17,7 @@ plot_flux_summary <- function(loads, site, variable, title=NULL) {
     geom_line(aes(y=Cest, color='Final'), size=0.25) +
     geom_point(aes(y=Cobs), color='red', size=1) +
     geom_line(aes(y=Cpred, color='Regression'), size=0.25) +
-    geom_hline(yint=0, alpha=0) +
+    geom_hline(yintercept=0, alpha=0) +
     labs(x='', y='Conc (ppb)') +
     scale_color_manual('', values=c('Final'='orangered', 'Regression'='black')) +
     scale_x_datetime(expand=c(0, 0),

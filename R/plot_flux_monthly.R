@@ -75,7 +75,7 @@ plot_flux_monthly <- function(loads, site, variable, title=NULL) {
                                        loads$predict_period[2]+lubridate::days(1),
                                        by='year'),
                      labels=scales::date_format('%m/%y')) +
-    geom_hline(yint=0, alpha=0) +
+    geom_hline(yintercept=0, alpha=0) +
     labs(x="", y="FWM Conc (ppb)") +
     theme_bw() +
     theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1),
@@ -94,7 +94,7 @@ plot_flux_monthly <- function(loads, site, variable, title=NULL) {
                                        loads$predict_period[2]+lubridate::days(1),
                                        by='year'),
                      labels=scales::date_format('%m/%y')) +
-    geom_hline(yint=0, alpha=0) +
+    geom_hline(yintercept=0, alpha=0) +
     labs(x="", y="Flow (hm3/mon)") +
     theme_bw() +
     theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1),
