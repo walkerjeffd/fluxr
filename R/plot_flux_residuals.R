@@ -13,14 +13,17 @@ plot_flux_residuals <- function(loads, site, variable, title=NULL) {
   start <- min(loads$predict$DATE)
   end <- max(loads$predict$DATE)
 
-  p_Cres_ts <- ggplot(loads[['predict']], aes(DATE)) +
+  p_Cres_ts <- ggplot(loads[['predict']], aes(lubridate::as_date(DATE))) +
     geom_hline(yintercept=0, color='grey70') +
     geom_point(aes(y=Cres), color='orangered', size=1) +
-    scale_x_datetime(expand=c(0, 0),
-                     breaks=seq.Date(ymd(paste(lubridate::year(start), 10, 1, sep='-')),
-                                     ymd(paste(lubridate::year(end), 10, 1, sep='-')),
-                                     by='year'),
-                     labels=scales::date_format('%m/%y')) +
+    scale_x_date(
+      expand=c(0, 0),
+      breaks=seq.Date(
+        ymd(paste(lubridate::year(start), 10, 1, sep='-')),
+        ymd(paste(lubridate::year(end), 10, 1, sep='-')),
+        by='year'
+      ),
+      labels=scales::date_format('%m/%y')) +
     labs(x="Date", y="Log Residual Conc (ppb)") +
     theme_bw() +
     theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1),
